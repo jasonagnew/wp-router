@@ -10,8 +10,11 @@
  * License:           GPL2+
  */
 
+
+require_once __DIR__ . '/src/class-wp-http.php';
 require_once __DIR__ . '/src/class-wp-router.php';
 
-global $wp_router;
+global $wp_router, $wp_http;
 
-$wp_router = new WP_Router;
+$wp_http 	= new WP_Http;
+$wp_router 	= new WP_Router;

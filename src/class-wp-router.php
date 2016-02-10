@@ -17,6 +17,11 @@ class WP_Router {
     );
 
     /**
+     * WP HTTP
+     */
+    protected $http;
+
+    /**
      * @var string
      */
     protected $rewrite_prefix = 'wp_router';
@@ -41,6 +46,8 @@ class WP_Router {
      */
     public function __construct()
     {
+    	$this->http = new WP_Http;
+
         add_action('wp_loaded', 	array( $this, 'flush' ) );
         add_action('init', 			array( $this, 'boot' ) );
         add_action('parse_request', array( $this, 'parse_request' ) );
@@ -55,7 +62,7 @@ class WP_Router {
     {
         add_rewrite_tag("%{$this->rewrite_prefix}_route%", '(.+)');
 
-        $method = 'GET';
+        $method = $this->http->method();
 
         foreach ( $this->routes[$method] as $id => $route )
         {
@@ -163,7 +170,7 @@ class WP_Router {
 			}
         }
 
-		$method = 'GET';
+		$method = $this->http->method();
 
         if ( isset( $this->routes[$method][$id] ) )
         {
