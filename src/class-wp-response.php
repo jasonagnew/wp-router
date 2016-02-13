@@ -2,7 +2,7 @@
 
 class WP_Response {
 
-	public $http_responses = array(
+	public $http_statuses = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',            // RFC2518
@@ -73,32 +73,38 @@ class WP_Response {
     {
     }
 
-    public function basic( $data, $code = 200 )
+    public function basic( $data, $status = 200, $headers = array() )
     {
-    	$this->set_http_code( $code );
+    	$this->set_http_status( $status );
+    	$this->set_headers( $headers );
 
     	return $data;
     }
 
 
-    public function json( $data, $code = 200 )
+    public function json( $data, $status = 200, $headers = array() )
     {
-    	$this->set_http_code( $code );
+    	$this->set_http_status( $status );
+    	$this->set_headers( $headers );
 
     	header( 'Content-Type: application/json' );
 
     	return json_encode( $data );
     }
 
-    public function redirect( $url, $code = 301 )
+    public function redirect( $url, $status = 302, $headers = array() )
     {
-    	$this->set_http_code( $code );
+    	$this->set_http_status( $status );
+    	$this->set_headers( $headers );
 
     	header( 'Location: ' . $url );
     }
 
-    public function template( $file, $varibales = array() )
+    public function template( $file, $varibales = array(), $status = 200, $headers = array() )
     {
+    	$this->set_http_status( $status );
+    	$this->set_headers( $headers );
+
     	$path = $this->file_path( $file );
 
     	ob_start();
@@ -119,7 +125,15 @@ class WP_Response {
 		return $path;
     }
 
-    protected function set_http_code( $code = 200 )
+    protected function set_headers( $headers )
+    {
+    	foreach ( $headers as $header )
+    	{
+    		header( $header );
+    	}
+    }
+
+    protected function set_http_status( $code = 200 )
     {
     	$protocal = 'HTTP/1.0';
 
@@ -128,13 +142,8 @@ class WP_Response {
     		$protocal = $_SERVER['SERVER_PROTOCOL'];
     	}
 
-    	$message = $this->http_responses[$code];
+    	$message = $this->http_statuses[$code];
 
     	header( "{$protocal} {$code} {$message}" );
     }
-
-//json response
-//template response
-//redirect
-
 }

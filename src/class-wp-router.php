@@ -178,10 +178,17 @@ class WP_Router {
             'parameters' => array()
         );
 
+        $uri = $route['uri'];
+
+        if( !empty( $route['prefix'] ) )
+        {
+        	$uri = $route['prefix'] . '/' . $route['uri'];
+        }
+
         $uri = '^' . preg_replace(
             $this->parameter_pattern,
             $this->value_pattern_replace,
-            str_replace( '/', '\\/', $route['prefix'] . '/' . $route['uri'] )
+            str_replace( '/', '\\/', $uri )
         );
 
         $url = 'index.php?';
