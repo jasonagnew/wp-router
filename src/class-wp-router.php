@@ -17,9 +17,9 @@ class WP_Router {
     );
 
     /**
-     * WP HTTP
+     * WP Request
      */
-    protected $http;
+    protected $request;
 
     /**
      * @var string
@@ -42,11 +42,21 @@ class WP_Router {
     protected $value_pattern_replace = '([^\/]+)';
 
     /**
+     * @var array
+     */
+    protected $prefix = '';
+
+    /**
+     * @var array
+     */
+    protected $middlewares = array();
+
+    /**
      * Adds the action hooks for WordPress.
      */
     public function __construct()
     {
-    	$this->http = new WP_Http;
+    	$this->request = new WP_Request;
 
         add_action('wp_loaded', 	array( $this, 'flush' ) );
         add_action('init', 			array( $this, 'boot' ) );
@@ -62,7 +72,7 @@ class WP_Router {
     {
         add_rewrite_tag("%{$this->rewrite_prefix}_route%", '(.+)');
 
-        $method = $this->http->method();
+        $method = $this->request->method();
 
         foreach ( $this->routes[$method] as $id => $route )
         {
@@ -90,6 +100,33 @@ class WP_Router {
 
         $attrs['uri'] = ltrim( $attrs['uri'] , '/' );
 
+        if ( isset( $attrs['prefix'] ) )
+        {
+        	$attrs['prefix'] = $this->prefix . $attrs['prefix'];
+        }
+        else
+        {
+        	$attrs['prefix'] = $this->prefix;
+        }
+
+        $attrs['prefix'] = ltrim( $attrs['prefix'] , '/' );
+
+        if ( isset( $attrs['middlewares'] ) )
+        {
+        	$middlewares = $attrs['middlewares'];
+
+        	if ( is_string( $middlewares ) )
+			{
+				$middlewares = array( $middlewares );
+			}
+
+			$attrs['middlewares'] = array_merge($this->middlewares, $middlewares);
+        }
+        else
+        {
+        	$attrs['middlewares'] = $this->middlewares;
+        }
+
         $route = apply_filters( 'wp_router_create_route', $attrs, $method );
 
         $this->routes[$method][] = $route;
@@ -100,6 +137,31 @@ class WP_Router {
         }
 
         return true;
+	}
+
+	public function group( $attrs )
+	{
+		if ( isset( $attrs['middlewares'] ) )
+		{
+			if ( is_string( $attrs['middlewares'] ) )
+			{
+				$this->middlewares[] = $attrs['middlewares'];
+			}
+			else
+			{
+				$this->middlewares = $attrs['middlewares'];
+			}
+		}
+
+		if ( isset( $attrs['prefix'] ) )
+		{
+			$this->prefix = $attrs['prefix'];
+		}
+
+		$this->fetch( $attrs['uses'], array() );
+
+		$this->middlewares = array();
+		$this->prefix = '';
 	}
 
     /**
@@ -119,7 +181,7 @@ class WP_Router {
         $uri = '^' . preg_replace(
             $this->parameter_pattern,
             $this->value_pattern_replace,
-            str_replace( '/', '\\/', $route['uri'] )
+            str_replace( '/', '\\/', $route['prefix'] . '/' . $route['uri'] )
         );
 
         $url = 'index.php?';
@@ -170,7 +232,7 @@ class WP_Router {
 			}
         }
 
-		$method = $this->http->method();
+		$method = $this->request->method();
 
         if ( isset( $this->routes[$method][$id] ) )
         {
@@ -197,7 +259,7 @@ class WP_Router {
             $parameters[$key] = $wp->query_vars[$reference];
         }
 
-        $this->process_request($route, $parameters);
+        $this->process_request( $route, $parameters );
 
        	die;
     }
@@ -207,13 +269,40 @@ class WP_Router {
      *
      * @param $wp
      */
-    public function process_request( $route, $args )
+    public function process_request( $route, $args = array() )
     {
-    	 $response = $this->fetch( $route['uses'], $args );
+    	$request = new WP_Request;
+    	$request->merge( $args );
 
-    	 //if json etc.
+		$store = array(
+			'middlewares' => $route['middlewares'],
+			'route' => $route,
+			'args' => $args
+		);
 
-    	 echo $response;
+    	$this->next( $request, $this, $store, true );
+    }
+
+    public function next( $request, $router, $store, $first = false )
+    {
+    	if ( (isset( $store['middlewares'][0] ) && $first) || isset( $store['middlewares'][1] ) )
+    	{
+	    	if ( !$first )
+	    	{
+	    		array_shift( $store['middlewares'] );
+	    	}
+
+	    	echo $this->fetch( $store['middlewares'][0] .'@run', array(
+	    		$request,
+	    		$this,
+	    		$store
+			) );
+    	}
+    	else
+    	{
+    		$store['args']['request'] = $request;
+    		echo $this->fetch( $store['route']['uses'], $store['args'] );
+    	}
     }
 
     /**
@@ -231,20 +320,10 @@ class WP_Router {
 
             $controller = new $class;
 
-            if ( !empty( $args ) )
-            {
-                return call_user_func_array( array( $controller, $method ), $args);
-            }
-
-            return $controller->$method();
+            return call_user_func_array( array( $controller, $method ), $args );
         }
 
-        if ( !empty( $args ) )
-        {
-            return call_user_func_array( $callback, $args );
-        }
-
-        return $callback();
+        return call_user_func_array( $callback, $args );
     }
 
     /**

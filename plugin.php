@@ -11,10 +11,12 @@
  */
 
 
-require_once __DIR__ . '/src/class-wp-http.php';
+require_once __DIR__ . '/src/class-wp-request.php';
+require_once __DIR__ . '/src/class-wp-middleware.php';
+require_once __DIR__ . '/src/class-wp-response.php';
 require_once __DIR__ . '/src/class-wp-router.php';
+require_once __DIR__ . '/src/helpers.php';
 
-global $wp_router, $wp_http;
+global $wp_router;
 
-$wp_http 	= new WP_Http;
-$wp_router 	= new WP_Router;
+$wp_router = new WP_Router;

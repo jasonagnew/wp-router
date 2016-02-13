@@ -1,0 +1,140 @@
+<?php
+
+class WP_Response {
+
+	public $http_responses = array(
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        102 => 'Processing',            // RFC2518
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-Status',          // RFC4918
+        208 => 'Already Reported',      // RFC5842
+        226 => 'IM Used',               // RFC3229
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        307 => 'Temporary Redirect',
+        308 => 'Permanent Redirect',    // RFC7238
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Timeout',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Payload Too Large',
+        414 => 'URI Too Long',
+        415 => 'Unsupported Media Type',
+        416 => 'Range Not Satisfiable',
+        417 => 'Expectation Failed',
+        418 => 'I\'m a teapot',                                               // RFC2324
+        422 => 'Unprocessable Entity',                                        // RFC4918
+        423 => 'Locked',                                                      // RFC4918
+        424 => 'Failed Dependency',                                           // RFC4918
+        425 => 'Reserved for WebDAV advanced collections expired proposal',   // RFC2817
+        426 => 'Upgrade Required',                                            // RFC2817
+        428 => 'Precondition Required',                                       // RFC6585
+        429 => 'Too Many Requests',                                           // RFC6585
+        431 => 'Request Header Fields Too Large',                             // RFC6585
+        451 => 'Unavailable For Legal Reasons',
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Timeout',
+        505 => 'HTTP Version Not Supported',
+        506 => 'Variant Also Negotiates (Experimental)',                      // RFC2295
+        507 => 'Insufficient Storage',                                        // RFC4918
+        508 => 'Loop Detected',                                               // RFC5842
+        510 => 'Not Extended',                                                // RFC2774
+        511 => 'Network Authentication Required',                             // RFC6585
+    );
+
+
+	 /**
+     *
+     */
+    public function __construct()
+    {
+    }
+
+    public function basic( $data, $code = 200 )
+    {
+    	$this->set_http_code( $code );
+
+    	return $data;
+    }
+
+
+    public function json( $data, $code = 200 )
+    {
+    	$this->set_http_code( $code );
+
+    	header( 'Content-Type: application/json' );
+
+    	return json_encode( $data );
+    }
+
+    public function redirect( $url, $code = 301 )
+    {
+    	$this->set_http_code( $code );
+
+    	header( 'Location: ' . $url );
+    }
+
+    public function template( $file, $varibales = array() )
+    {
+    	$path = $this->file_path( $file );
+
+    	ob_start();
+    	extract($varibales);
+    	require $path;
+		$output = ob_get_contents();
+		ob_end_clean();
+
+		return $output;
+    }
+
+    protected function file_path( $path )
+    {
+		$path = str_replace('{root}', ABSPATH, $path);
+		$path = str_replace('{wp-content}', WP_CONTENT_DIR, $path);
+		$path = str_replace('{active-theme}', get_stylesheet_directory(), $path);
+
+		return $path;
+    }
+
+    protected function set_http_code( $code = 200 )
+    {
+    	$protocal = 'HTTP/1.0';
+
+    	if ( isset( $_SERVER['SERVER_PROTOCOL'] ) )
+    	{
+    		$protocal = $_SERVER['SERVER_PROTOCOL'];
+    	}
+
+    	$message = $this->http_responses[$code];
+
+    	header( "{$protocal} {$code} {$message}" );
+    }
+
+//json response
+//template response
+//redirect
+
+}
