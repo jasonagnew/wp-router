@@ -2,7 +2,7 @@
 
 class WP_Response {
 
-	public $http_statuses = array(
+	protected $http_statuses = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',            // RFC2518
@@ -65,64 +65,38 @@ class WP_Response {
         511 => 'Network Authentication Required',                             // RFC6585
     );
 
+    protected $data;
 
-	 /**
-     *
-     */
-    public function __construct()
+    protected $status;
+
+    protected $headers;
+
+    public function __construct( $data, $status = 200, $headers = array() )
     {
+    	$this->set_data( $data );
+		$this->status  = $status;
+		$this->headers = $headers;
     }
 
-    public function basic( $data, $status = 200, $headers = array() )
+    public function __toString()
     {
-    	$this->set_http_status( $status );
-    	$this->set_headers( $headers );
+    	$this->set_http_status( $this->status );
+    	$this->set_headers( $this->headers );
 
-    	return $data;
+    	return $this->data;
     }
 
-
-    public function json( $data, $status = 200, $headers = array() )
+    protected function set_data( $data )
     {
-    	$this->set_http_status( $status );
-    	$this->set_headers( $headers );
+		if ( $data !== null
+			&& !is_string( $data )
+			&& !is_numeric( $data )
+			&& !is_callable( array($data, '__toString') ) )
+		{
+			throw new \UnexpectedValueException( sprintf('The Response data must be a string or object implementing __toString(), "%s" given.', gettype( $data ) ) );
+        }
 
-    	header( 'Content-Type: application/json' );
-
-    	return json_encode( $data );
-    }
-
-    public function redirect( $url, $status = 302, $headers = array() )
-    {
-    	$this->set_http_status( $status );
-    	$this->set_headers( $headers );
-
-    	header( 'Location: ' . $url );
-    }
-
-    public function template( $file, $varibales = array(), $status = 200, $headers = array() )
-    {
-    	$this->set_http_status( $status );
-    	$this->set_headers( $headers );
-
-    	$path = $this->file_path( $file );
-
-    	ob_start();
-    	extract($varibales);
-    	require $path;
-		$output = ob_get_contents();
-		ob_end_clean();
-
-		return $output;
-    }
-
-    protected function file_path( $path )
-    {
-		$path = str_replace('{root}', ABSPATH, $path);
-		$path = str_replace('{wp-content}', WP_CONTENT_DIR, $path);
-		$path = str_replace('{active-theme}', get_stylesheet_directory(), $path);
-
-		return $path;
+    	$this->data = (string) $data;
     }
 
     protected function set_headers( $headers )
