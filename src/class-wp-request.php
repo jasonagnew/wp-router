@@ -2,57 +2,53 @@
 
 class WP_Request {
 
-
 	/**
 	* $_Request & php://input
 	*
-	* @var
+	* @var array
 	*/
 	protected $parameters;
 
 	/**
 	* $_GET
 	*
-	* @var
+	* @var array
 	*/
 	public $query;
 
 	/**
 	* $_POST
 	*
-	* @var
+	* @var array
 	*/
 	public $request;
 
     /**
      * $_SERVER
      *
-     * @var
+     * @var array
      */
     public $server;
 
     /**
      * $_FILES
      *
-     * @var
+     * @var array
      */
     public $files;
 
     /**
      * $_COOKIE
      *
-     * @var
+     * @var array
      */
     public $cookies;
 
     /**
-     * Headers (taken from the $_SERVER).
+     * List of available types.
      *
-     * @var
+     * @var array
      */
-    public $headers;
-
-
    	public $types = array(
    		'parameters',
    		'query',
@@ -62,8 +58,16 @@ class WP_Request {
    		'server'
    	);
 
-
-
+   	/**
+   	 * Build request.
+   	 *
+   	 * @param array
+   	 * @param array
+   	 * @param array
+   	 * @param array
+   	 * @param array
+   	 * @param array
+   	 */
 	public function __construct( $parameters = array(), $query = array(), $request = array(), $cookies = array(), $files = array(), $server = array() )
 	{
 		$this->parameters = $this->request();
@@ -74,9 +78,11 @@ class WP_Request {
 		$this->server     = $_SERVER;
 	}
 
+
 	/**
-	 * Gets request info
+	 * Gets $_Request & php://input
 	 *
+	 * @return array
 	 */
 	public function request()
 	{
@@ -96,6 +102,12 @@ class WP_Request {
 		return $request;
 	}
 
+	/**
+	 * Valids a given type.
+	 *
+	 * @param  string
+	 * @return void
+	 */
 	protected function check_type( $type )
 	{
 		if ( !in_array( $type, $this->types ) )
@@ -107,8 +119,9 @@ class WP_Request {
 	/**
 	 * Gets a request parameter.
 	 *
-	 * @param        $var
-	 * @param string $default
+	 * @param  string
+	 * @param  string
+	 * @param  string
 	 * @return string
 	 */
 	public function get( $var, $default = '', $type = 'parameters' )
@@ -126,10 +139,11 @@ class WP_Request {
 	/**
 	 * Check if a request parameter exists.
 	 *
-	 * @param $var
+	 * @param  string
+	 * @param  string
 	 * @return bool
 	 */
-	public function has( $var, $type = 'parameters'  )
+	public function has( $var, $type = 'parameters' )
 	{
 		return $this->get( $var, null, $type ) !== null;
 	}
@@ -137,6 +151,7 @@ class WP_Request {
 	/**
 	 * Return all the request parameters.
 	 *
+	 * @param  string
 	 * @return mixed
 	 */
 	public function all( $type = 'parameters' )
@@ -146,6 +161,13 @@ class WP_Request {
 		return $this->$type;
 	}
 
+	/**
+	 * Merges an array into the request parameters.
+	 *
+	 * @param  array
+	 * @param  string
+	 * @return void
+	 */
 	public function merge( $data, $type = 'parameters' )
 	{
 		$this->check_type( $type );
@@ -153,6 +175,13 @@ class WP_Request {
 		$this->{$type} = array_merge( $this->{$type}, $data );
 	}
 
+	/**
+	 * Returns only the values specified by $keys
+	 *
+	 * @param  array
+	 * @param  string
+	 * @return array
+	 */
 	public function only( $keys, $type = 'parameters' )
 	{
 		$keys = is_array($keys) ? $keys : array($keys);
@@ -170,6 +199,13 @@ class WP_Request {
         return $results;
 	}
 
+	/**
+	 * Return all the request parameters execept values specified by $keys
+	 *
+	 * @param  array
+	 * @param  string
+	 * @return array
+	 */
 	public function except( $keys, $type = 'parameters' )
 	{
 		$keys = is_array($keys) ? $keys : array($keys);
@@ -190,7 +226,7 @@ class WP_Request {
 	/**
 	 * Gets method used, supporting _method
 	 *
-	 * @return mixed
+	 * @return string
 	 */
 	public function method()
 	{
