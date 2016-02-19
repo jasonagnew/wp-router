@@ -2,6 +2,14 @@
 
 class WP_Template_Response extends WP_Response {
 
+	/**
+	 * Renders a template as a response.
+	 *
+	 * @param string
+	 * @param array
+	 * @param integer
+	 * @param array
+	 */
     public function __construct( $file, $varibales = array(), $status = 200, $headers = array() )
     {
     	$path = $this->file_path( $file );
@@ -15,6 +23,12 @@ class WP_Template_Response extends WP_Response {
     	return parent::__construct( $data, $status, $headers );
     }
 
+    /**
+     * Gets path to file, always some short hand syntax {}
+     *
+     * @param  string
+     * @return string
+     */
     protected function file_path( $path )
     {
 		$path = str_replace('{root}', ABSPATH, $path);

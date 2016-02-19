@@ -96,7 +96,7 @@ class WP_Request {
 		return $request;
 	}
 
-	protected check_type( $type )
+	protected function check_type( $type )
 	{
 		if ( !in_array( $type, $this->types ) )
 		{

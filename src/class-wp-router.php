@@ -17,7 +17,7 @@ class WP_Router {
     );
 
     /**
-     * WP Request
+     * @var WP Request
      */
     protected $request;
 
@@ -63,7 +63,7 @@ class WP_Router {
         add_action('parse_request', array( $this, 'parse_request' ) );
     }
 
-     /**
+    /**
      * Boot the router.
      *
      * @return void
@@ -94,7 +94,7 @@ class WP_Router {
         {
             if ( !isset( $attrs[$key] ) )
             {
-                return new WP_Error( 'missing-attr', "Missing {$key} definition for route" );
+                 throw new InvalidArgumentException( "Missing {$key} definition for route" );
             }
         }
 
@@ -139,6 +139,12 @@ class WP_Router {
         return true;
 	}
 
+	/**
+	 *	Starts a new router group.
+	 *
+	 * @param  $attrs
+	 * @return void
+	 */
 	public function group( $attrs )
 	{
 		if ( isset( $attrs['middlewares'] ) )
@@ -271,10 +277,11 @@ class WP_Router {
        	die;
     }
 
-     /**
+    /**
      * Handles the response of the route.
      *
-     * @param $wp
+     * @param  $route
+     * @param  $args
      */
     public function process_request( $route, $args = array() )
     {
@@ -342,6 +349,75 @@ class WP_Router {
     {
         flush_rewrite_rules();
     }
+
+    /**
+     * Returns the route by name.
+     */
+	public function name( $name )
+	{
+		$methods = array_keys( $this->routes );
+
+		foreach ( $methods as $method )
+		{
+			if ( isset( $this->routes['named'][$method .'::'. $name] ) )
+			{
+				return array_merge( $this->routes['named'][$method .'::'. $name], array( 'method' => $method ) );
+			}
+		}
+
+		return false;
+	}
+
+    /**
+     * Returns the uri of named route.
+     */
+	public function uri( $name )
+	{
+		$route = $this->name( $name );
+
+		if ( $route )
+		{
+			if( !empty( $route['prefix'] ) )
+	        {
+	        	return $route['prefix'] . '/' . $route['uri'];
+	        }
+
+			return $route['uri'];
+		}
+
+		return false;
+	}
+
+	/**
+     * Returns the url of named route.
+     */
+	public function url( $name )
+	{
+		$uri = $this->uri( $name );
+		$uri = ltrim( $uri, '/' );
+
+		if ( $uri )
+		{
+			return get_bloginfo( 'url' ) . '/' . $uri;
+		}
+
+		return false;
+	}
+
+	/**
+     * Returns the method of named route.
+     */
+	public function method( $name )
+	{
+		$route = $this->name( $name );
+
+		if ( $route )
+		{
+			return $route['method'];
+		}
+
+		return false;
+	}
 
     /**
      * Helper method for adding route.

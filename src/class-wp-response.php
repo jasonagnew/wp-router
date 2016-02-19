@@ -2,6 +2,11 @@
 
 class WP_Response {
 
+	/**
+	 * List of messages related to their codes.
+	 *
+	 * @var array
+	 */
 	protected $http_statuses = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -65,12 +70,34 @@ class WP_Response {
         511 => 'Network Authentication Required',                             // RFC6585
     );
 
+	/**
+	 * Response data
+	 *
+	 * @var string
+	 */
     protected $data;
 
+    /**
+     * Status code
+     *
+     * @var integer
+     */
     protected $status;
 
+    /**
+     * Array of headers
+     *
+     * @var array
+     */
     protected $headers;
 
+    /**
+     * Build the response object.
+     *
+     * @param string
+     * @param integer
+     * @param array
+     */
     public function __construct( $data, $status = 200, $headers = array() )
     {
     	$this->set_data( $data );
@@ -78,6 +105,11 @@ class WP_Response {
 		$this->headers = $headers;
     }
 
+    /**
+     * Called when user returns WP_Response
+     *
+     * @return string
+     */
     public function __toString()
     {
     	$this->set_http_status( $this->status );
@@ -86,6 +118,11 @@ class WP_Response {
     	return $this->data;
     }
 
+    /**
+     *	Sets data, ensures it can be converted to string.
+     *
+     * @param mixed
+     */
     protected function set_data( $data )
     {
 		if ( $data !== null
@@ -99,6 +136,11 @@ class WP_Response {
     	$this->data = (string) $data;
     }
 
+    /**
+     *	Loop an array of headers and set them.
+     *
+     * @param array
+     */
     protected function set_headers( $headers )
     {
     	foreach ( $headers as $header )
@@ -107,6 +149,11 @@ class WP_Response {
     	}
     }
 
+    /**
+     *	Convert an HTTP status code in a header.
+     *
+     * @param integer
+     */
     protected function set_http_status( $code = 200 )
     {
     	$protocal = 'HTTP/1.0';
