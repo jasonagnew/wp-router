@@ -1,6 +1,12 @@
-
 {
   "name": "wp-router/wp-router",
   "description": "WP-Router",
-  "license": "GPL2+"
+  "license": "GPL2+",
+  "require-dev": {
+    "phpunit/phpunit": "^5.2",
+    "phpunit/phpunit-selenium": "^2.0"
+  },
+  "require": {
+    "guzzlehttp/guzzle": "^6.1"
+  }
 }

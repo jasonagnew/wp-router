@@ -17,6 +17,11 @@ class WP_Router {
     );
 
     /**
+     * @var boolean
+     */
+    protected $testing;
+
+    /**
      * @var WP Request
      */
     protected $request;
@@ -54,8 +59,9 @@ class WP_Router {
     /**
      * Adds the action hooks for WordPress.
      */
-    public function __construct()
+    public function __construct( $testing = false )
     {
+    	$this->testing = $testing;
     	$this->request = new WP_Request;
 
         add_action('wp_loaded', 	array( $this, 'flush' ) );
@@ -177,7 +183,7 @@ class WP_Router {
      * @param $id
      * @param $method
      */
-    protected function add_route($route, $id, $method)
+    protected function add_route( $route, $id, $method )
     {
         $params = array(
             'id' => $id,
@@ -220,10 +226,16 @@ class WP_Router {
      * Catches requests and checks if they contain 'wp_router_route'
      * before passing them to 'process_request'
      *
+     * @param $direct
      * @param $wp
      */
-    public function parse_request($wp)
+    public function parse_request( $wp, $direct = false )
     {
+    	if ( $this->testing && !$direct )
+    	{
+    		return;
+    	}
+
     	$route_key = "{$this->rewrite_prefix}_route";
 
         if ( !array_key_exists( $route_key, $wp->query_vars ) )
@@ -272,7 +284,12 @@ class WP_Router {
             $parameters[$key] = $wp->query_vars[$reference];
         }
 
-        $this->process_request( $route, $parameters );
+        $response = $this->process_request( $route, $parameters );
+
+        if ( $this->testing )
+    	{
+    		return $response;
+    	}
 
        	die;
     }
@@ -294,7 +311,7 @@ class WP_Router {
 			'args' => $args
 		);
 
-    	$this->next( $request, $this, $store, true );
+    	return $this->next( $request, $this, $store, true );
     }
 
     public function next( $request, $router, $store, $first = false )
@@ -306,7 +323,7 @@ class WP_Router {
 	    		array_shift( $store['middlewares'] );
 	    	}
 
-	    	echo $this->fetch( $store['middlewares'][0] .'@run', array(
+	    	$response = $this->fetch( $store['middlewares'][0] .'@run', array(
 	    		$request,
 	    		$this,
 	    		$store
@@ -315,8 +332,15 @@ class WP_Router {
     	else
     	{
     		$store['args']['request'] = $request;
-    		echo $this->fetch( $store['route']['uses'], $store['args'] );
+    		$response = $this->fetch( $store['route']['uses'], $store['args'] );
     	}
+
+    	if ( $this->testing )
+    	{
+    		return $response;
+    	}
+
+    	echo $response;
     }
 
     /**

@@ -119,6 +119,16 @@ class WP_Response {
     }
 
     /**
+     * Returns data of the response.
+     *
+     * @return string
+     */
+    public function get()
+    {
+    	return $this->data;
+    }
+
+    /**
      *	Sets data, ensures it can be converted to string.
      *
      * @param mixed
