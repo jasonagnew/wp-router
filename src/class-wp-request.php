@@ -192,7 +192,7 @@ class WP_Request {
         {
         	if ( $this->has( $key, $type ) )
         	{
-        		$results[] = $this->get( $key, $type );
+        		$results[ $key ] = $this->get( $key, $type );
         	}
         }
 
