@@ -60,15 +60,8 @@ class WP_Request {
 
    	/**
    	 * Build request.
-   	 *
-   	 * @param array
-   	 * @param array
-   	 * @param array
-   	 * @param array
-   	 * @param array
-   	 * @param array
    	 */
-	public function __construct( $parameters = array(), $query = array(), $request = array(), $cookies = array(), $files = array(), $server = array() )
+	public function __construct()
 	{
 		$this->parameters = $this->request();
 		$this->query   	  = $_GET;
