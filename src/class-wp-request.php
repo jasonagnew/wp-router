@@ -45,6 +45,13 @@ class WP_Request {
     public $cookies;
 
     /**
+     * request headers
+     *
+     * @var array
+     */
+    public $headers;
+
+    /**
      * List of available types.
      *
      * @var array
@@ -55,7 +62,8 @@ class WP_Request {
    		'request',
    		'cookies',
    		'files',
-   		'server'
+   		'server',
+   		'headers',
    	);
 
    	/**
@@ -76,6 +84,7 @@ class WP_Request {
 		$this->cookies    = $_COOKIE;
 		$this->files      = $_FILES;
 		$this->server     = $_SERVER;
+		$this->headers    = getallheaders();
 	}
 
 
