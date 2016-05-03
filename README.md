@@ -102,8 +102,6 @@ class Middleware_One extends WP_Middleware {
 }
 ```
 ``` php
-
-``` php
 $wp_router->get( array(
 	'as'   => 'simpleRoute',
 	'uri'  => '/simple',
