@@ -112,8 +112,7 @@ $wp_router->get( array(
 
 ## Overall Example
 
-```
-<?php
+``` php
 
 class Middleware_One extends WP_Middleware {
 
