@@ -21,7 +21,7 @@ class WP_Request {
 	*
 	* @var array
 	*/
-	public $request;
+	public $post;
 
     /**
      * $_SERVER
@@ -59,7 +59,7 @@ class WP_Request {
    	public $types = array(
    		'parameters',
    		'query',
-   		'request',
+   		'post',
    		'cookies',
    		'files',
    		'server',
@@ -80,7 +80,7 @@ class WP_Request {
 	{
 		$this->parameters = $this->request();
 		$this->query   	  = $_GET;
-		$this->request    = $_POST;
+		$this->post       = $_POST;
 		$this->cookies    = $_COOKIE;
 		$this->files      = $_FILES;
 		$this->server     = $_SERVER;
