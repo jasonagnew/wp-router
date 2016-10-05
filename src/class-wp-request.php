@@ -77,7 +77,43 @@ class WP_Request {
 		$this->cookies    = $_COOKIE;
 		$this->files      = $_FILES;
 		$this->server     = $_SERVER;
-		$this->headers    = getallheaders();
+		$this->headers    = $this->get_all_headers();
+	}
+
+	/**
+	 * getallheaders() as it does  not work as expected on some
+	 * server architectures (e.g. Nginx), so use this instead.
+	 *
+	 * @return array
+	 */
+	public function get_all_headers()
+	{
+		if( !function_exists('getallheaders') )
+		{
+			$headers = array();
+
+			foreach($_SERVER as $name => $value)
+			{
+				if( substr( $name, 0, 5 ) == 'HTTP_' )
+				{
+					$new_name = str_replace( ' ', '-', ucwords( str_replace( '_', ' ', strtolower( substr( $name, 5 ) ) ) ) );
+
+					$headers[$new_name] = $value;
+				}
+				elseif ($name == 'CONTENT_TYPE')
+				{
+					$headers['Content-Type'] = $value;
+				}
+				elseif ($name == 'CONTENT_LENGTH')
+				{
+					$headers['Content-Length'] = $value;
+				}
+			}
+
+			return $headers;
+		}
+
+		return getallheaders();
 	}
 
 
