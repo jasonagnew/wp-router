@@ -9,6 +9,7 @@ class WP_Router {
      */
     protected $routes = array(
         'GET' 	 => array(),
+		'HEAD'   => array(),
         'POST' 	 => array(),
         'PUT' 	 => array(),
         'PATCH'  => array(),
